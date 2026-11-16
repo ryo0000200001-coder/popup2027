@@ -71,6 +71,14 @@ nav button.on{color:var(--accent);font-weight:700}
 .who button{padding:12px;border-radius:12px;border:1px solid var(--line);background:var(--bg);cursor:pointer;font-size:16px}
 .mini{font-size:13px;color:var(--sub)}
 .row{display:flex;justify-content:space-between;gap:8px;align-items:center}
+.photo{display:block;max-width:100%;max-height:320px;border-radius:10px;margin-top:8px;cursor:zoom-in;object-fit:cover}
+.photo-prev{position:relative}
+.photo-prev img{max-width:100%;max-height:200px;border-radius:10px;display:block}
+.photo-prev .x{position:absolute;top:4px;left:4px;background:var(--card);border-radius:99px}
+label.btn{display:inline-flex;align-items:center}
+.btn[disabled]{opacity:.6}
+.lightbox{cursor:zoom-out}
+.lightbox img{max-width:100%;max-height:100%;border-radius:8px}
 .settings label{display:block;font-size:13px;color:var(--sub);margin:10px 0 4px}
 .settings input{width:100%;background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:9px 11px}
 </style>
@@ -244,11 +252,13 @@ const VIEWS = {
     const list = [...S.ideas].sort((a, b) => ((b.likes || []).length - (a.likes || []).length) || byNew(a, b));
     return `
     <form class="add" data-form="ideas">
-      <textarea class="grow" name="text" placeholder="思いついたこと、なんでも" required></textarea>
-      <button class="btn">投稿</button>
+      <textarea class="grow" name="text" placeholder="思いついたこと、なんでも（写真だけでもOK）">${esc(S.ideaDraft || "")}</textarea>
+      ${S.ideaPhoto ? `<div class="grow photo-prev"><img src="${S.ideaPhoto}" alt=""><button type="button" class="x" data-act="clearPhoto">×</button></div>` : ""}
+      <label class="btn ghost">📷 写真<input type="file" accept="image/*" data-photo hidden></label>
+      <button class="btn" ${S.busy ? "disabled" : ""}>${S.busy ? "処理中…" : "投稿"}</button>
     </form>
     <div class="list">${list.map(i => { const likes = i.likes || []; return `
-      <div class="item"><div class="body">${esc(i.text)}<div class="meta">${esc(i.author)}</div></div>
+      <div class="item"><div class="body">${i.text ? esc(i.text) : ""}${i.photo ? `<img class="photo" src="${i.photo}" alt="" data-zoom="${i.id}">` : ""}<div class="meta">${esc(i.author)}</div></div>
       <button class="like ${likes.includes(S.me) ? "on" : ""}" data-like="${i.id}" title="${esc(likes.join("、"))}">♥ ${likes.length}</button>
       <button class="x" data-del="ideas:${i.id}">×</button></div>`; }).join("") || `<div class="empty">アイデアはまだありません</div>`}</div>`;
   },
@@ -299,6 +309,9 @@ const closeModal = () => document.getElementById("modal").innerHTML = "";
 
 // ---------- イベント ----------
 document.addEventListener("click", e => {
+  const z = e.target.closest("[data-zoom]");
+  if (z) { document.getElementById("modal").innerHTML = `<div class="modal lightbox" data-act="close"><img src="${z.src}" alt=""></div>`; return; }
+  if (e.target.closest(".lightbox")) return closeModal();
   const t = e.target.closest("button,input[type=checkbox]"); if (!t) return;
   const d = t.dataset;
   if (d.tab) { S.tab = d.tab; lsSet("pu-tab", d.tab); render(); scrollTo(0, 0); }
@@ -306,6 +319,7 @@ document.addEventListener("click", e => {
   else if (d.me) { S.me = d.me; lsSet("pu-me", d.me); closeModal(); render(); }
   else if (d.act === "settings") showSettings();
   else if (d.act === "close") closeModal();
+  else if (d.act === "clearPhoto") { S.ideaPhoto = null; render(); }
   else if (d.filter) { S.filter = d.filter; render(); }
   else if (d.cycle) { const x = S.tasks.find(k => k.id === d.cycle); if (x) store.update("tasks", x.id, { status: { todo: "doing", doing: "done", done: "todo" }[x.status] || "todo" }); }
   else if (d.toggle) { const x = S.milestones.find(k => k.id === d.toggle); if (x) store.update("milestones", x.id, { done: !x.done }); }
@@ -335,10 +349,43 @@ document.addEventListener("submit", e => {
   if (col === "tasks") store.add(col, { title: v.title.trim(), assignee: v.assignee, due: v.due, status: "todo", author });
   if (col === "milestones") store.add(col, { title: v.title.trim(), date: v.date, done: false, author });
   if (col === "logs") store.add(col, { text: v.text.trim(), date: v.date || today(), author });
-  if (col === "ideas") store.add(col, { text: v.text.trim(), likes: [], author });
+  if (col === "ideas") {
+    const text = (v.text || "").trim();
+    if (!text && !S.ideaPhoto) return alert("文字か写真を入れてください");
+    Promise.resolve(store.add(col, { text, photo: S.ideaPhoto || "", likes: [], author })).catch(err => alert("投稿に失敗しました：" + (err.code || err.message)));
+    S.ideaPhoto = null; S.ideaDraft = "";
+  }
   if (col === "expenses") store.add(col, { item: v.item.trim(), amount: +v.amount, paidBy: v.paidBy, date: v.date || today(), author });
   pending = false; render();
 });
+
+// ---------- 写真 ----------
+document.addEventListener("input", e => { if (e.target.matches('[data-form="ideas"] textarea')) S.ideaDraft = e.target.value; });
+document.addEventListener("change", async e => {
+  const inp = e.target.closest("[data-photo]"); if (!inp || !inp.files[0]) return;
+  S.busy = true; render();
+  try { S.ideaPhoto = await shrink(inp.files[0]); }
+  catch { alert("この画像は読み込めませんでした"); }
+  S.busy = false; render();
+});
+// 写真を縮小して JPEG の文字列にする（データベースの1件あたり上限 1MB に収める）
+async function shrink(file) {
+  const url = URL.createObjectURL(file);
+  try {
+    const img = await new Promise((ok, ng) => { const i = new Image(); i.onload = () => ok(i); i.onerror = ng; i.src = url; });
+    let max = 1280, q = 0.78, out = "";
+    for (let n = 0; n < 6; n++) {
+      const r = Math.min(1, max / Math.max(img.naturalWidth, img.naturalHeight));
+      const c = document.createElement("canvas");
+      c.width = Math.round(img.naturalWidth * r); c.height = Math.round(img.naturalHeight * r);
+      c.getContext("2d").drawImage(img, 0, 0, c.width, c.height);
+      out = c.toDataURL("image/jpeg", q);
+      if (out.length < 700000) return out;
+      max *= 0.8; q -= 0.08;
+    }
+    return out;
+  } finally { URL.revokeObjectURL(url); }
+}
 
 // ---------- 購読 ----------
 let rendered = false;
