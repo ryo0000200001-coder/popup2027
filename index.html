@@ -1,0 +1,351 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>POP UP 2027</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Zen+Kaku+Gothic+New:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#f6f3ee; --card:#ffffff; --ink:#1f1d1a; --sub:#77716a; --line:#e6e0d7;
+  --accent:#e2553f; --accent-soft:#fbe4df; --ok:#2f8f5b; --ok-soft:#dff1e6; --warn:#c98a12; --warn-soft:#faefd7;
+  --radius:14px;
+}
+@media (prefers-color-scheme: dark){
+  :root{ --bg:#171614; --card:#22201d; --ink:#f2eee8; --sub:#a39d94; --line:#35322d;
+    --accent:#ff7a63; --accent-soft:#3d2520; --ok:#5cc489; --ok-soft:#1d3327; --warn:#e6b04a; --warn-soft:#3a2f17; }
+}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--bg);color:var(--ink);font-family:"Zen Kaku Gothic New",system-ui,sans-serif;font-size:15px;line-height:1.6;padding-bottom:84px}
+button,input,select,textarea{font:inherit;color:inherit}
+header{padding:20px 16px 8px;max-width:760px;margin:0 auto;display:flex;align-items:center;gap:12px}
+header h1{font-size:20px;margin:0;flex:1;letter-spacing:.02em}
+.me{font-size:13px;background:var(--card);border:1px solid var(--line);border-radius:999px;padding:4px 12px;cursor:pointer}
+main{max-width:760px;margin:0 auto;padding:8px 16px}
+.banner{background:var(--warn-soft);color:var(--warn);border-radius:10px;padding:8px 12px;font-size:13px;margin-bottom:12px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:16px;margin-bottom:12px}
+.card h2{font-size:15px;margin:0 0 10px;color:var(--sub);font-weight:500}
+.count{display:flex;align-items:baseline;gap:8px}
+.count b{font-size:56px;line-height:1;color:var(--accent);font-variant-numeric:tabular-nums}
+.bar{height:8px;background:var(--line);border-radius:99px;overflow:hidden;margin-top:6px}
+.bar i{display:block;height:100%;background:var(--ok)}
+form.add{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:12px}
+form.add input,form.add select,form.add textarea{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:9px 11px;min-width:0}
+form.add .grow{flex:1 1 100%}
+form.add textarea{min-height:70px;resize:vertical}
+.btn{background:var(--accent);color:#fff;border:0;border-radius:10px;padding:9px 16px;font-weight:700;cursor:pointer}
+.btn.ghost{background:transparent;color:var(--sub);border:1px solid var(--line);font-weight:500}
+.list{display:flex;flex-direction:column;gap:8px}
+.item{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px;display:flex;gap:10px;align-items:flex-start}
+.item .body{flex:1;min-width:0;word-break:break-word;white-space:pre-wrap}
+.meta{font-size:12px;color:var(--sub);margin-top:2px}
+.x{background:none;border:0;color:var(--sub);cursor:pointer;font-size:18px;line-height:1;padding:2px 4px}
+.chip{font-size:12px;border-radius:999px;padding:2px 10px;border:0;cursor:pointer;white-space:nowrap;font-weight:500}
+.s-todo{background:var(--line);color:var(--sub)}
+.s-doing{background:var(--warn-soft);color:var(--warn)}
+.s-done{background:var(--ok-soft);color:var(--ok)}
+.done .body{text-decoration:line-through;color:var(--sub)}
+.filters{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px}
+.filters button{background:var(--card);border:1px solid var(--line);border-radius:999px;padding:3px 12px;font-size:13px;cursor:pointer}
+.filters button.on{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.timeline .item{border-left:4px solid var(--accent)}
+.timeline .item.done{border-left-color:var(--ok)}
+.timeline .item.past:not(.done){border-left-color:var(--warn)}
+.date{font-variant-numeric:tabular-nums;font-weight:700;min-width:80px}
+.like{background:var(--accent-soft);color:var(--accent);border:0;border-radius:999px;padding:2px 10px;cursor:pointer;font-size:13px}
+.like.on{background:var(--accent);color:#fff}
+table{width:100%;border-collapse:collapse;font-size:14px}
+td,th{padding:6px 4px;text-align:left;border-bottom:1px solid var(--line)}
+td.num,th.num{text-align:right;font-variant-numeric:tabular-nums}
+.empty{color:var(--sub);text-align:center;padding:24px 0;font-size:14px}
+nav{position:fixed;left:0;right:0;bottom:0;background:var(--card);border-top:1px solid var(--line);display:flex;justify-content:center;padding-bottom:env(safe-area-inset-bottom)}
+nav .in{display:flex;max-width:760px;width:100%}
+nav button{flex:1;background:none;border:0;padding:10px 0 8px;font-size:11px;color:var(--sub);cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:2px}
+nav button span{font-size:20px;line-height:1}
+nav button.on{color:var(--accent);font-weight:700}
+.modal{position:fixed;inset:0;background:rgba(0,0,0,.45);display:flex;align-items:center;justify-content:center;padding:16px;z-index:10}
+.modal .card{width:100%;max-width:380px}
+.who{display:flex;flex-direction:column;gap:8px}
+.who button{padding:12px;border-radius:12px;border:1px solid var(--line);background:var(--bg);cursor:pointer;font-size:16px}
+.mini{font-size:13px;color:var(--sub)}
+.row{display:flex;justify-content:space-between;gap:8px;align-items:center}
+.settings label{display:block;font-size:13px;color:var(--sub);margin:10px 0 4px}
+.settings input{width:100%;background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:9px 11px}
+</style>
+</head>
+<body>
+<header>
+  <h1 id="title">POP UP 2027</h1>
+  <button class="me" id="meBtn">—</button>
+</header>
+<main id="main"></main>
+<nav><div class="in" id="nav"></div></nav>
+<div id="modal"></div>
+
+<script type="module">
+/* =========================================================
+   ▼ Firebase の設定をここに貼り付け（未設定ならお試しモード）
+   ========================================================= */
+const FIREBASE_CONFIG = null;
+/* ========================================================= */
+
+const DEFAULT_SETTINGS = { title: "POP UP 2027", date: "2027-09-01", members: ["メンバーA", "メンバーB", "メンバーC"] };
+const COLS = ["tasks", "milestones", "logs", "ideas", "expenses"];
+
+// ---------- データ層 ----------
+let store;
+if (FIREBASE_CONFIG) {
+  const { initializeApp } = await import("https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js");
+  const fs = await import("https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js");
+  const db = fs.getFirestore(initializeApp(FIREBASE_CONFIG));
+  store = {
+    live: true,
+    sub(col, cb) { return fs.onSnapshot(fs.collection(db, col), s => cb(s.docs.map(d => ({ id: d.id, ...d.data() })))); },
+    subSettings(cb) { return fs.onSnapshot(fs.doc(db, "meta", "settings"), s => cb(s.exists() ? s.data() : null)); },
+    add(col, d) { return fs.addDoc(fs.collection(db, col), { ...d, createdAt: Date.now() }); },
+    update(col, id, d) { return fs.updateDoc(fs.doc(db, col, id), d); },
+    remove(col, id) { return fs.deleteDoc(fs.doc(db, col, id)); },
+    saveSettings(d) { return fs.setDoc(fs.doc(db, "meta", "settings"), d); },
+  };
+} else {
+  const listeners = {};
+  const read = k => { try { return JSON.parse(localStorage.getItem("pu:" + k)) } catch { return null } };
+  const write = (k, v) => { try { localStorage.setItem("pu:" + k, JSON.stringify(v)) } catch {} ; (listeners[k] || []).forEach(f => f(v)); };
+  window.addEventListener("storage", e => { if (e.key?.startsWith("pu:")) { const k = e.key.slice(3); (listeners[k] || []).forEach(f => f(read(k))); } });
+  const on = (k, f) => { (listeners[k] ||= []).push(f); f(read(k)); };
+  store = {
+    live: false,
+    sub(col, cb) { on(col, v => cb(v || [])); },
+    subSettings(cb) { on("settings", cb); },
+    add(col, d) { write(col, [...(read(col) || []), { ...d, id: crypto.randomUUID?.() || String(Math.random()), createdAt: Date.now() }]); },
+    update(col, id, d) { write(col, (read(col) || []).map(x => x.id === id ? { ...x, ...d } : x)); },
+    remove(col, id) { write(col, (read(col) || []).filter(x => x.id !== id)); },
+    saveSettings(d) { write("settings", d); },
+  };
+}
+
+// ---------- 状態 ----------
+const S = { settings: DEFAULT_SETTINGS, tab: "home", filter: "all" };
+COLS.forEach(c => S[c] = []);
+const lsGet = k => { try { return localStorage.getItem(k) } catch { return null } };
+const lsSet = (k, v) => { try { localStorage.setItem(k, v) } catch {} };
+S.me = lsGet("pu-me");
+S.tab = lsGet("pu-tab") || "home";
+
+const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+const today = () => { const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`; };
+const fmtDate = s => s ? s.replace(/^(\d{4})-(\d{2})-(\d{2})$/, (_, y, m, d) => `${y}/${+m}/${+d}`) : "";
+const yen = n => "¥" + Math.round(n).toLocaleString("ja-JP");
+const byNew = (a, b) => (b.createdAt || 0) - (a.createdAt || 0);
+const memberOpts = (sel, withNone) => (withNone ? `<option value="">担当なし</option>` : "") + S.settings.members.map(m => `<option ${m === sel ? "selected" : ""}>${esc(m)}</option>`).join("");
+
+const TABS = [
+  ["home", "🏠", "ホーム"], ["tasks", "✅", "タスク"], ["milestones", "📅", "予定"],
+  ["logs", "📝", "ログ"], ["ideas", "💡", "アイデア"], ["expenses", "💰", "お金"],
+];
+
+// ---------- 描画 ----------
+function render() {
+  document.title = S.settings.title;
+  document.getElementById("title").textContent = S.settings.title;
+  document.getElementById("meBtn").textContent = S.me ? `👤 ${S.me}` : "名前を選ぶ";
+  document.getElementById("nav").innerHTML = TABS.map(([k, i, l]) => `<button data-tab="${k}" class="${S.tab === k ? "on" : ""}"><span>${i}</span>${l}</button>`).join("");
+  const banner = store.live ? "" : `<div class="banner">お試しモード：データはこの端末だけに保存されています（Firebase 未接続）</div>`;
+  document.getElementById("main").innerHTML = banner + (VIEWS[S.tab] || VIEWS.home)();
+}
+
+const VIEWS = {
+  home() {
+    const days = Math.ceil((new Date(S.settings.date + "T00:00:00") - new Date(today() + "T00:00:00")) / 864e5);
+    const total = S.tasks.length, done = S.tasks.filter(t => t.status === "done").length;
+    const next = S.milestones.filter(m => !m.done).sort((a, b) => (a.date || "").localeCompare(b.date || "")).slice(0, 3);
+    const mine = S.tasks.filter(t => t.assignee === S.me && t.status !== "done").sort((a, b) => (a.due || "9").localeCompare(b.due || "9")).slice(0, 5);
+    const logs = [...S.logs].sort(byNew).slice(0, 3);
+    return `
+    <div class="card"><h2>本番まで（${fmtDate(S.settings.date)}）</h2>
+      <div class="count"><b>${days >= 0 ? days : 0}</b><span>日</span></div></div>
+    <div class="card"><h2>タスク進捗</h2>
+      <div class="row"><span>${done} / ${total} 完了</span><span class="mini">${total ? Math.round(done / total * 100) : 0}%</span></div>
+      <div class="bar"><i style="width:${total ? done / total * 100 : 0}%"></i></div></div>
+    <div class="card"><h2>${S.me ? esc(S.me) + " のやること" : "自分のやること"}</h2>
+      ${mine.length ? mine.map(t => `<div class="row" style="padding:4px 0"><span>${esc(t.title)}</span><span class="mini">${t.due ? fmtDate(t.due) : ""}</span></div>`).join("") : `<div class="mini">なし 🎉</div>`}</div>
+    <div class="card"><h2>次の予定</h2>
+      ${next.length ? next.map(m => `<div class="row" style="padding:4px 0"><span>${esc(m.title)}</span><span class="mini">${fmtDate(m.date)}</span></div>`).join("") : `<div class="mini">まだ予定がありません</div>`}</div>
+    <div class="card"><h2>最近のログ</h2>
+      ${logs.length ? logs.map(l => `<div style="padding:4px 0"><div class="mini">${fmtDate(l.date)} · ${esc(l.author)}</div><div style="white-space:pre-wrap">${esc(l.text)}</div></div>`).join("") : `<div class="mini">まだ記録がありません</div>`}</div>
+    <button class="btn ghost" data-act="settings" style="width:100%">⚙️ 設定（タイトル・日付・メンバー名）</button>`;
+  },
+
+  tasks() {
+    const order = { doing: 0, todo: 1, done: 2 };
+    let list = [...S.tasks];
+    if (S.filter !== "all") list = list.filter(t => t.assignee === S.filter);
+    list.sort((a, b) => (order[a.status] - order[b.status]) || (a.due || "9").localeCompare(b.due || "9"));
+    const label = { todo: "未着手", doing: "進行中", done: "完了" };
+    return `
+    <form class="add" data-form="tasks">
+      <input class="grow" name="title" placeholder="やること" required>
+      <select name="assignee">${memberOpts(S.me, true)}</select>
+      <input type="date" name="due">
+      <button class="btn">追加</button>
+    </form>
+    <div class="filters">${["all", ...S.settings.members].map(m => `<button data-filter="${esc(m)}" class="${S.filter === m ? "on" : ""}">${m === "all" ? "全員" : esc(m)}</button>`).join("")}</div>
+    <div class="list">${list.map(t => `
+      <div class="item ${t.status === "done" ? "done" : ""}">
+        <button class="chip s-${t.status}" data-cycle="${t.id}">${label[t.status]}</button>
+        <div class="body">${esc(t.title)}<div class="meta">${t.assignee ? "👤 " + esc(t.assignee) : "担当なし"}${t.due ? " · 〆 " + fmtDate(t.due) : ""}</div></div>
+        <button class="x" data-del="tasks:${t.id}">×</button>
+      </div>`).join("") || `<div class="empty">タスクはまだありません</div>`}</div>
+    <p class="mini">ステータスをタップすると 未着手 → 進行中 → 完了 と切り替わります</p>`;
+  },
+
+  milestones() {
+    const t = today();
+    const list = [...S.milestones].sort((a, b) => (a.date || "").localeCompare(b.date || ""));
+    return `
+    <form class="add" data-form="milestones">
+      <input class="grow" name="title" placeholder="予定・マイルストーン（例：会場決定）" required>
+      <input type="date" name="date" required>
+      <button class="btn">追加</button>
+    </form>
+    <div class="list timeline">${list.map(m => `
+      <div class="item ${m.done ? "done" : ""} ${m.date < t ? "past" : ""}">
+        <input type="checkbox" data-toggle="${m.id}" ${m.done ? "checked" : ""} style="margin-top:5px">
+        <div class="date">${fmtDate(m.date)}</div>
+        <div class="body">${esc(m.title)}</div>
+        <button class="x" data-del="milestones:${m.id}">×</button>
+      </div>`).join("") || `<div class="empty">予定はまだありません</div>`}</div>`;
+  },
+
+  logs() {
+    const list = [...S.logs].sort((a, b) => (b.date || "").localeCompare(a.date || "") || byNew(a, b));
+    return `
+    <form class="add" data-form="logs">
+      <textarea class="grow" name="text" placeholder="今日やったこと・決まったこと" required></textarea>
+      <input type="date" name="date" value="${today()}">
+      <button class="btn">記録</button>
+    </form>
+    <div class="list">${list.map(l => `
+      <div class="item"><div class="body"><div class="meta" style="margin:0 0 4px">${fmtDate(l.date)} · ${esc(l.author)}</div>${esc(l.text)}</div>
+      <button class="x" data-del="logs:${l.id}">×</button></div>`).join("") || `<div class="empty">ログはまだありません</div>`}</div>`;
+  },
+
+  ideas() {
+    const list = [...S.ideas].sort((a, b) => ((b.likes || []).length - (a.likes || []).length) || byNew(a, b));
+    return `
+    <form class="add" data-form="ideas">
+      <textarea class="grow" name="text" placeholder="思いついたこと、なんでも" required></textarea>
+      <button class="btn">投稿</button>
+    </form>
+    <div class="list">${list.map(i => { const likes = i.likes || []; return `
+      <div class="item"><div class="body">${esc(i.text)}<div class="meta">${esc(i.author)}</div></div>
+      <button class="like ${likes.includes(S.me) ? "on" : ""}" data-like="${i.id}" title="${esc(likes.join("、"))}">♥ ${likes.length}</button>
+      <button class="x" data-del="ideas:${i.id}">×</button></div>`; }).join("") || `<div class="empty">アイデアはまだありません</div>`}</div>`;
+  },
+
+  expenses() {
+    const members = S.settings.members;
+    const total = S.expenses.reduce((s, e) => s + (+e.amount || 0), 0);
+    const share = members.length ? total / members.length : 0;
+    const paid = Object.fromEntries(members.map(m => [m, 0]));
+    S.expenses.forEach(e => { if (e.paidBy in paid) paid[e.paidBy] += +e.amount || 0; });
+    const list = [...S.expenses].sort((a, b) => (b.date || "").localeCompare(a.date || "") || byNew(a, b));
+    return `
+    <form class="add" data-form="expenses">
+      <input class="grow" name="item" placeholder="何に使った？" required>
+      <input type="number" name="amount" placeholder="金額" min="0" inputmode="numeric" required style="width:120px">
+      <select name="paidBy">${memberOpts(S.me)}</select>
+      <input type="date" name="date" value="${today()}">
+      <button class="btn">追加</button>
+    </form>
+    <div class="card"><h2>合計 ${yen(total)}（1人あたり ${yen(share)}）</h2>
+      <table><tr><th>名前</th><th class="num">立替</th><th class="num">精算</th></tr>
+      ${members.map(m => { const d = paid[m] - share; return `<tr><td>${esc(m)}</td><td class="num">${yen(paid[m])}</td>
+        <td class="num" style="color:${d > 0.5 ? "var(--ok)" : d < -0.5 ? "var(--accent)" : "var(--sub)"}">${d > 0.5 ? "+" + yen(d) + " もらう" : d < -0.5 ? yen(-d) + " 払う" : "±0"}</td></tr>`; }).join("")}
+      </table></div>
+    <div class="list">${list.map(e => `
+      <div class="item"><div class="body">${esc(e.item)}<div class="meta">${fmtDate(e.date)} · ${esc(e.paidBy)} が立替</div></div>
+      <b style="font-variant-numeric:tabular-nums">${yen(+e.amount || 0)}</b>
+      <button class="x" data-del="expenses:${e.id}">×</button></div>`).join("") || `<div class="empty">支出はまだありません</div>`}</div>`;
+  },
+};
+
+// ---------- モーダル ----------
+function showWho() {
+  document.getElementById("modal").innerHTML = `<div class="modal"><div class="card"><h2>あなたは誰？</h2>
+    <div class="who">${S.settings.members.map(m => `<button data-me="${esc(m)}">${esc(m)}</button>`).join("")}</div>
+    <p class="mini">この端末に記憶されます。右上からいつでも変更できます。</p></div></div>`;
+}
+function showSettings() {
+  const s = S.settings;
+  document.getElementById("modal").innerHTML = `<div class="modal"><form class="card settings" data-form="settings"><h2>設定</h2>
+    <label>タイトル</label><input name="title" value="${esc(s.title)}">
+    <label>本番の日付</label><input type="date" name="date" value="${esc(s.date)}">
+    ${s.members.map((m, i) => `<label>メンバー${i + 1}</label><input name="m${i}" value="${esc(m)}">`).join("")}
+    <div class="row" style="margin-top:14px"><button type="button" class="btn ghost" data-act="close">キャンセル</button><button class="btn">保存</button></div>
+  </form></div>`;
+}
+const closeModal = () => document.getElementById("modal").innerHTML = "";
+
+// ---------- イベント ----------
+document.addEventListener("click", e => {
+  const t = e.target.closest("button,input[type=checkbox]"); if (!t) return;
+  const d = t.dataset;
+  if (d.tab) { S.tab = d.tab; lsSet("pu-tab", d.tab); render(); scrollTo(0, 0); }
+  else if (t.id === "meBtn") showWho();
+  else if (d.me) { S.me = d.me; lsSet("pu-me", d.me); closeModal(); render(); }
+  else if (d.act === "settings") showSettings();
+  else if (d.act === "close") closeModal();
+  else if (d.filter) { S.filter = d.filter; render(); }
+  else if (d.cycle) { const x = S.tasks.find(k => k.id === d.cycle); if (x) store.update("tasks", x.id, { status: { todo: "doing", doing: "done", done: "todo" }[x.status] || "todo" }); }
+  else if (d.toggle) { const x = S.milestones.find(k => k.id === d.toggle); if (x) store.update("milestones", x.id, { done: !x.done }); }
+  else if (d.like) {
+    if (!S.me) return showWho();
+    const x = S.ideas.find(k => k.id === d.like); if (!x) return;
+    const likes = x.likes || [];
+    store.update("ideas", x.id, { likes: likes.includes(S.me) ? likes.filter(n => n !== S.me) : [...likes, S.me] });
+  }
+  else if (d.del) { const [col, id] = d.del.split(":"); if (confirm("削除しますか？")) store.remove(col, id); }
+});
+
+document.addEventListener("submit", e => {
+  const f = e.target.closest("form[data-form]"); if (!f) return;
+  e.preventDefault();
+  const v = Object.fromEntries(new FormData(f));
+  const col = f.dataset.form;
+  if (col === "settings") {
+    const members = S.settings.members.map((m, i) => (v["m" + i] || "").trim() || m);
+    const renamed = Object.fromEntries(S.settings.members.map((m, i) => [m, members[i]]));
+    store.saveSettings({ title: v.title.trim() || DEFAULT_SETTINGS.title, date: v.date || DEFAULT_SETTINGS.date, members });
+    if (S.me && renamed[S.me]) { S.me = renamed[S.me]; lsSet("pu-me", S.me); }
+    closeModal(); return;
+  }
+  if (!S.me) return showWho();
+  const author = S.me;
+  if (col === "tasks") store.add(col, { title: v.title.trim(), assignee: v.assignee, due: v.due, status: "todo", author });
+  if (col === "milestones") store.add(col, { title: v.title.trim(), date: v.date, done: false, author });
+  if (col === "logs") store.add(col, { text: v.text.trim(), date: v.date || today(), author });
+  if (col === "ideas") store.add(col, { text: v.text.trim(), likes: [], author });
+  if (col === "expenses") store.add(col, { item: v.item.trim(), amount: +v.amount, paidBy: v.paidBy, date: v.date || today(), author });
+  pending = false; render();
+});
+
+// ---------- 購読 ----------
+let rendered = false;
+const rerender = () => {
+  // 入力中のフォームは消さない
+  const a = document.activeElement;
+  if (rendered && a && a.closest("form") && (a.value || "").length) return pending = true;
+  render(); rendered = true;
+};
+let pending = false;
+document.addEventListener("focusout", () => setTimeout(() => { if (pending && !document.activeElement?.closest("form")) { pending = false; render(); } }, 0));
+
+store.subSettings(s => { S.settings = { ...DEFAULT_SETTINGS, ...(s || {}) }; rerender(); if (!S.me || !S.settings.members.includes(S.me)) showWho(); });
+COLS.forEach(c => store.sub(c, rows => { S[c] = rows; rerender(); }));
+render();
+</script>
+</body>
+</html>
