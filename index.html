@@ -88,7 +88,14 @@ nav button.on{color:var(--accent);font-weight:700}
 /* =========================================================
    ▼ Firebase の設定をここに貼り付け（未設定ならお試しモード）
    ========================================================= */
-const FIREBASE_CONFIG = null;
+const FIREBASE_CONFIG = {
+  apiKey: "AIzaSyD0Dd3vzHrzsv0Kpvck_D3dZeujk9uaC1E",
+  authDomain: "popup-2027.firebaseapp.com",
+  projectId: "popup-2027",
+  storageBucket: "popup-2027.firebasestorage.app",
+  messagingSenderId: "239161986707",
+  appId: "1:239161986707:web:aa79ad0eca03d68e2f8766",
+};
 /* ========================================================= */
 
 const DEFAULT_SETTINGS = { title: "POP UP 2027", date: "2027-09-01", members: ["メンバーA", "メンバーB", "メンバーC"] };
@@ -100,10 +107,11 @@ if (FIREBASE_CONFIG) {
   const { initializeApp } = await import("https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js");
   const fs = await import("https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js");
   const db = fs.getFirestore(initializeApp(FIREBASE_CONFIG));
+  const onErr = e => { console.error(e); S.error = "データベースに接続できません（" + (e.code || e.message) + "）。Firestore の作成とルールを確認してください。"; render(); };
   store = {
     live: true,
-    sub(col, cb) { return fs.onSnapshot(fs.collection(db, col), s => cb(s.docs.map(d => ({ id: d.id, ...d.data() })))); },
-    subSettings(cb) { return fs.onSnapshot(fs.doc(db, "meta", "settings"), s => cb(s.exists() ? s.data() : null)); },
+    sub(col, cb) { return fs.onSnapshot(fs.collection(db, col), s => cb(s.docs.map(d => ({ id: d.id, ...d.data() }))), onErr); },
+    subSettings(cb) { return fs.onSnapshot(fs.doc(db, "meta", "settings"), s => cb(s.exists() ? s.data() : null), onErr); },
     add(col, d) { return fs.addDoc(fs.collection(db, col), { ...d, createdAt: Date.now() }); },
     update(col, id, d) { return fs.updateDoc(fs.doc(db, col, id), d); },
     remove(col, id) { return fs.deleteDoc(fs.doc(db, col, id)); },
@@ -152,7 +160,7 @@ function render() {
   document.getElementById("title").textContent = S.settings.title;
   document.getElementById("meBtn").textContent = S.me ? `👤 ${S.me}` : "名前を選ぶ";
   document.getElementById("nav").innerHTML = TABS.map(([k, i, l]) => `<button data-tab="${k}" class="${S.tab === k ? "on" : ""}"><span>${i}</span>${l}</button>`).join("");
-  const banner = store.live ? "" : `<div class="banner">お試しモード：データはこの端末だけに保存されています（Firebase 未接続）</div>`;
+  const banner = S.error ? `<div class="banner">${esc(S.error)}</div>` : store.live ? "" : `<div class="banner">お試しモード：データはこの端末だけに保存されています（Firebase 未接続）</div>`;
   document.getElementById("main").innerHTML = banner + (VIEWS[S.tab] || VIEWS.home)();
 }
 
